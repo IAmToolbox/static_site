@@ -4,7 +4,7 @@ import unittest
 
 from textnode import TextType, TextNode
 from htmlnode import HTMLNode, LeafNode, ParentNode
-from conversions import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnode
+from conversions import *
 
 class TestConversions(unittest.TestCase):
     def test_delimiter_bold(self):
@@ -89,6 +89,21 @@ class TestConversions(unittest.TestCase):
         ],
         nodes,
         )
+    
+    def test_markdown_to_blocks(self):
+        md = "This is **bolded** paragraph\n\nThis is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line\n\n- This is a list\n- with items"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["This is **bolded** paragraph", "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line", "- This is a list\n- with items"])
+    
+    def test_excessive_newlines(self):
+        md = "Paragraph\n\n\n\n\nwith too many newlines"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Paragraph", "with too many newlines"])
+    
+    def test_excessive_newlines_2(self):
+        md = "Paragraph\n\n\nwith too many newlines"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Paragraph", "with too many newlines"])
 
 if __name__ == "__main__":
     unittest.main()

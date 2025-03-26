@@ -124,3 +124,12 @@ def text_to_textnode(text): # Uses every function in this file to turn markdown 
     node_list = split_nodes_delimiter(node_list, "_", TextType.ITALIC_TEXT)
     node_list = split_nodes_delimiter(node_list, "`", TextType.CODE_TEXT)
     return node_list
+
+def markdown_to_blocks(markdown): # Turns raw markdown into blocks that can be converted to TextNodes
+    split_lines = markdown.split("\n\n")
+    stripped_lines = []
+    for line in split_lines:
+        stripped_lines.append(line.strip())
+        if stripped_lines[-1] == "":
+            stripped_lines.pop()
+    return stripped_lines
