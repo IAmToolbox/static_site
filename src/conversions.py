@@ -1,7 +1,16 @@
 import re
+from enum import Enum
 
 from textnode import TextType, TextNode
 from htmlnode import HTMLNode, LeafNode, ParentNode
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
 
 def text_node_to_html_node(text_node): # Converts TextNode objects into HTMLNode ones, specifically LeafNode objects
     match text_node.text_type:
@@ -27,32 +36,6 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type): # Takes a list of Te
             new_nodes.append(node)
             continue
         current_text_slices = node.text.split(delimiter)
-        '''
-        match delimiter:
-            case "**":
-                current_text_slices.extend(node.text.split(delimiter))
-                for i in range(len(current_text_slices)):
-                    if i % 2 == 0 or i == 0:
-                        new_nodes.append(TextNode(current_text_slices[i], TextType.NORMAL_TEXT))
-                    else:
-                        new_nodes.append(TextNode(current_text_slices[i], text_type))
-            case ("_"):
-                current_text_slices.extend(node.text.split(delimiter))
-                for i in range(len(current_text_slices)):
-                    if i % 2 == 0 or i == 0:
-                        new_nodes.append(TextNode(current_text_slices[i], TextType.NORMAL_TEXT))
-                    else:
-                        new_nodes.append(TextNode(current_text_slices[i], text_type))
-            case "`":
-                current_text_slices.extend(node.text.split(delimiter))
-                for i in range(len(current_text_slices)):
-                    if i % 2 == 0 or i == 0:
-                        new_nodes.append(TextNode(current_text_slices[i], TextType.NORMAL_TEXT))
-                    else:
-                        new_nodes.append(TextNode(current_text_slices[i], text_type))
-            case _:
-                raise Exception("invalid markdown syntax")
-        '''
         for i, slice in enumerate(current_text_slices):
             if i % 2 == 0:
                 new_nodes.append(TextNode(slice, TextType.NORMAL_TEXT))
@@ -133,3 +116,31 @@ def markdown_to_blocks(markdown): # Turns raw markdown into blocks that can be c
         if stripped_lines[-1] == "":
             stripped_lines.pop()
     return stripped_lines
+
+def block_to_block_type(block): # Checks what kind of markdown block is the input
+    if block.startswith("```") and block.endswith("```"):
+        return BlockType.CODE
+    if block.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
+        return BlockType.HEADING
+    
+    lines = block.split("\n")
+
+    if all(line.startswith(">") for line in lines):
+        return BlockType.QUOTE
+    if all(line.startswith("- ") for line in lines):
+        return BlockType.UNORDERED_LIST
+    if is_ordered_list(block):
+        return BlockType.ORDERED_LIST
+    
+    return BlockType.PARAGRAPH
+
+def is_ordered_list(block): # Helper function used for the above
+    lines = block.split("\n")
+    expected_number = 1
+    for line in lines:
+        if not line.startswith(f"{expected_number}. "):
+            return False
+        expected_number += 1
+    return True
+
+    

@@ -104,6 +104,30 @@ class TestConversions(unittest.TestCase):
         md = "Paragraph\n\n\nwith too many newlines"
         blocks = markdown_to_blocks(md)
         self.assertEqual(blocks, ["Paragraph", "with too many newlines"])
+    
+    def test_block_to_block_type(self):
+        md = "This is **bolded** paragraph\n\nThis is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line\n\n- This is a list\n- with items"
+        blocks = markdown_to_blocks(md)
+        types = list(map(block_to_block_type, blocks))
+        self.assertEqual(types, [BlockType.PARAGRAPH, BlockType.PARAGRAPH, BlockType.UNORDERED_LIST])
+    
+    def test_block_to_block_type_2(self):
+        md = "> 'Don't quote me on that'\n\nJohn Doe, the quotemaster 2k25"
+        blocks = markdown_to_blocks(md)
+        types = list(map(block_to_block_type, blocks))
+        self.assertEqual(types, [BlockType.QUOTE, BlockType.PARAGRAPH])
+    
+    def test_block_to_block_type_3(self):
+        md = "```\na = 'Hello World'\nprint(a)\n```\n\nLook guys I can do a Python!!"
+        blocks = markdown_to_blocks(md)
+        types = list(map(block_to_block_type, blocks))
+        self.assertEqual(types, [BlockType.CODE, BlockType.PARAGRAPH])
+    
+    def test_block_to_block_type_4(self): # How many of these do I need?
+        md = "# The Great Pythonic Shopping List\n\n1. Bread\n2. Eggs\n3. Spam\n4. Monty Python DVD\n5. Sausages\n6. ???\n7. Profit"
+        blocks = markdown_to_blocks(md)
+        types = list(map(block_to_block_type, blocks))
+        self.assertEqual(types, [BlockType.HEADING, BlockType.ORDERED_LIST])
 
 if __name__ == "__main__":
     unittest.main()
