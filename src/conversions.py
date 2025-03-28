@@ -143,4 +143,65 @@ def is_ordered_list(block): # Helper function used for the above
         expected_number += 1
     return True
 
-    
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    parent = ParentNode("div", [])
+    for block in blocks:
+        type = block_to_block_type(block)
+        match type:
+            case BlockType.PARAGRAPH:
+                p_node = ParentNode("p", [])
+                text_nodes = text_to_textnode(block)
+                html_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
+                p_node.children = html_nodes
+                parent.children.append(p_node)
+            case BlockType.HEADING:
+                head_amount = block.count("#", 0, 6)
+                h_node = ParentNode(f"h{head_amount}", [])
+                heading_content = block.lstrip("#").lstrip()
+                text_nodes = text_to_textnode(heading_content)
+                html_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
+                h_node.children = html_nodes
+                parent.children.append(h_node)
+            case BlockType.CODE:
+                pre_node = ParentNode("pre", [])
+                lines = block.strip().split("\n")
+                code_content = block
+                if lines[0].startswith("```") and lines[-1].startswith("```"):
+                    code_lines = lines[1:-1]
+                    code_content = "\n".join(code_lines)
+                c_text_node = TextNode(code_content, TextType.CODE_TEXT)
+                c_node = text_node_to_html_node(c_text_node)
+                pre_node.children = [c_node]
+                parent.children.append(pre_node)
+            case BlockType.QUOTE:
+                q_node = ParentNode("blockquote", [])
+                text_nodes = text_to_textnode(block)
+                html_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
+                q_node.children = html_nodes
+                parent.children.append(q_node)
+            case BlockType.UNORDERED_LIST:
+                ul_node = ParentNode("ul", [])
+                list_items = [item.strip()[2:] for item in block.split("\n") if item.strip().startswith("- ")]
+                for item in list_items:
+                    li_node = ParentNode("li", [])
+                    text_nodes = text_to_textnode(item)
+                    html_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
+                    li_node.children = html_nodes
+                    ul_node.children.append(li_node)
+                parent.children.append(ul_node)
+            case BlockType.ORDERED_LIST:
+                ol_node = ParentNode("ol", [])
+                list_items = []
+                for item in block.split("\n"):
+                    match = re.match(r'^\s*\d+\.\s+(.*)', item)
+                    if match:
+                        list_items.append(match.group(1))
+                for item in list_items:
+                    li_node = ParentNode("li", [])
+                    text_nodes = text_to_textnode(item)
+                    html_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
+                    li_node.children = html_nodes
+                    ol_node.children.append(li_node)
+                parent.children.append(ol_node)
+    return parent
