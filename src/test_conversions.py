@@ -148,6 +148,22 @@ class TestConversions(unittest.TestCase):
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff</code></pre></div>",
         )
+    
+    def test_title_extraction(self):
+        md = "# Extract this!"
+        self.assertEqual(extract_title(md), "Extract this!")
+    
+    def test_title_extraction_again(self):
+        md = "# Things I look for in a man\n\n- Leezard\n- That's it just leezard"
+        self.assertEqual(extract_title(md), "Things I look for in a man")
+    
+    def test_not_title(self):
+        md = "Oh? You thought the title of this markdown would be at the top?\n\n# GUESS AGAIN FUCKO"
+        self.assertEqual(extract_title(md), "GUESS AGAIN FUCKO")
+    
+    def test_multiple_headings(self):
+        md = "# I accidentally added two titles\n# I guess only the first will be extracted..."
+        self.assertEqual(extract_title(md), "I accidentally added two titles")
 
 if __name__ == "__main__":
     unittest.main()

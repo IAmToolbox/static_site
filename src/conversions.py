@@ -2,7 +2,7 @@ import re
 from enum import Enum
 
 from textnode import TextType, TextNode
-from htmlnode import HTMLNode, LeafNode, ParentNode
+from htmlnode import HTMLNode, LeafNode, ParentNode, ImageNode, LinkNode
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -23,9 +23,9 @@ def text_node_to_html_node(text_node): # Converts TextNode objects into HTMLNode
         case TextType.CODE_TEXT:
             return LeafNode("code", text_node.text)
         case TextType.LINK_TEXT:
-            return LeafNode("a", text_node.text, {"href": text_node.url})
+            return LinkNode(text_node.url, text_node.text)
         case TextType.IMAGE_TEXT:
-            return LeafNode("img", props={"src": text_node.url, "alt": text_node.text})
+            return ImageNode(text_node.url, text_node.text)
         case _:
             raise Exception("invalid text type")
 
@@ -177,6 +177,8 @@ def markdown_to_html_node(markdown):
             case BlockType.QUOTE:
                 q_node = ParentNode("blockquote", [])
                 text_nodes = text_to_textnode(block)
+                for node in text_nodes:
+                    node.text = node.text.replace("> ", "")
                 html_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
                 q_node.children = html_nodes
                 parent.children.append(q_node)
@@ -205,3 +207,9 @@ def markdown_to_html_node(markdown):
                     ol_node.children.append(li_node)
                 parent.children.append(ol_node)
     return parent
+
+def extract_title(markdown):
+    lines = markdown.split("\n")
+    for line in lines:
+        if line.startswith("# "):
+            return line.strip("#").strip()

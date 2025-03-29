@@ -11,9 +11,11 @@ class HTMLNode:
         raise NotImplementedError
     
     def props_to_html(self):
+        if not self.props:
+            return ""
         props_string = ""
         for prop in self.props:
-            props_string = f"{props_string} {prop}: {self.props[prop]}"
+            props_string = f"{props_string} {prop}=\"{self.props[prop]}\""
         return props_string
     
     def __eq__(self, other):
@@ -29,10 +31,27 @@ class LeafNode(HTMLNode):
     
     def to_html(self):
         if self.value == None:
+            print(f"Problem node: {self.tag}, props: {self.props}")
             raise ValueError("node requires value")
         if self.tag == None:
             return str(self.value)
         return f"<{self.tag}>{self.value}</{self.tag}>"
+
+class ImageNode(LeafNode):
+    def __init__(self, src, alt=""):
+        super().__init__("img", None)
+        self.props = {"src": src, "alt": alt}
+    
+    def to_html(self):
+        return f"<{self.tag}{self.props_to_html()} />"
+
+class LinkNode(LeafNode):
+    def __init__(self, href, text=""):
+        super().__init__("a", None)
+        self.props = {"href": href, "text": text}
+    
+    def to_html(self):
+        return f"<{self.tag}{self.props_to_html()} />"
 
 class ParentNode(HTMLNode):
     def __init__(self, tag=None, children=None, props=None):
